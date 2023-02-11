@@ -30,8 +30,30 @@ Eigen::Matrix4f get_model_matrix(float rotation_angle)
     Eigen::Matrix4f model;
     Eigen::Vector3f zAxis(0, 0, 1);
     Eigen::Matrix3f N, temp;
-    N << 0, -1, 0, 1, 0, 0, 0, 0, 0;
+    N << 0, -zAxis.z(), zAxis.y(),
+        zAxis.z(), 0, -zAxis.x(),
+        -zAxis.y(), zAxis.x(), 0;
     temp = cos * Eigen::Matrix3f::Identity() + (1.0 - cos) * (zAxis * zAxis.transpose()) + sin * N;
+    model << temp(0,0), temp(0,1), temp(0,2), 0, temp(1,0), temp(1,1), temp(1,2), 0, temp(2,0), temp(2,1), temp(2,2), 0, 0, 0, 0, 1;
+    // TODO: Implement this function
+    // Create the model matrix for rotating the triangle around the Z axis.
+    // Then return it.
+
+    return model;
+}
+
+Eigen::Matrix4f get_model_matrix(float rotation_angle, Eigen::Vector3f axis)
+{
+
+    float pi = std::acos(-1);  
+    float cos = std::cos(rotation_angle/180.0 * pi);
+    float sin = std::sin (rotation_angle/180.0 * pi);
+    Eigen::Matrix3f rodrigues;
+
+    Eigen::Matrix4f model;
+    Eigen::Matrix3f N, temp;
+    N << 0, -axis(2), axis(1), axis(2), 0, -axis(0), -axis(1), axis(0), 0;
+    temp = cos * Eigen::Matrix3f::Identity() + (1.0 - cos) * (axis * axis.transpose()) + sin * N;
     model << temp(0,0), temp(0,1), temp(0,2), 0, temp(1,0), temp(1,1), temp(1,2), 0, temp(2,0), temp(2,1), temp(2,2), 0, 0, 0, 0, 1;
     // TODO: Implement this function
     // Create the model matrix for rotating the triangle around the Z axis.
@@ -44,13 +66,22 @@ Eigen::Matrix4f get_projection_matrix(float eye_fov, float aspect_ratio,
                                       float zNear, float zFar)
 {
     // Students will implement this function
-    float y = 2 * std::tan(eye_fov / 2.0 / 180.0 * std::acos(-1)) * zNear;
+    float y = 2 * std::tan(eye_fov / 2.0 / 180.0 * std::acos(-1)) * -zNear;
     float x = y * aspect_ratio;
     Eigen::Matrix4f projection;
     Eigen::Matrix4f ortho, per2Ortho, orthoTemp;
-    per2Ortho << zNear, 0, 0, 0, 0, zNear, 0, 0, 0, 0, zNear + zFar, -zNear * zFar, 0, 0, 1, 0;
-    ortho << 2.0 / y , 0, 0, 0, 0, 2.0 / x, 0, 0, 0, 0, 2.0 /(zFar - zNear), 0, 0, 0 ,0, 1;
-    orthoTemp << 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, -(zFar + zNear)/ 2.0, 0, 0, 0, 1;
+    per2Ortho << zNear, 0, 0, 0,
+                 0, zNear, 0, 0,
+                 0, 0, zNear + zFar, -zNear * zFar,
+                 0, 0, 1, 0;
+    ortho << 2.0 / y , 0, 0, 0,
+             0, 2.0 / x, 0, 0,
+             0, 0, 2.0 /(zNear - zFar), 0,
+             0, 0 ,0, 1;
+    orthoTemp << 1, 0, 0, 0, 
+                 0, 1, 0, 0,
+                 0, 0, 1, -(zFar + zNear)/ 2.0,
+                 0, 0, 0, 1;
     projection = ortho * orthoTemp * per2Ortho;
     // TODO: Implement this function
     // Create the projection matrix for the given parameters.
@@ -101,7 +132,7 @@ int main(int argc, const char** argv)
 
         return 0;
     }
-
+    Eigen::Vector3f axis(0, 1, 0);
     while (key != 27) {
         r.clear(rst::Buffers::Color | rst::Buffers::Depth);
         r.set_model(get_model_matrix(angle));
@@ -113,7 +144,7 @@ int main(int argc, const char** argv)
         cv::imshow("image", image);
         key = cv::waitKey(10);
 
-        std::cout << "frame count: " << frame_count++ << '\n';
+        // std::cout << "frame count: " << frame_count++ << '\n';
 
         if (key == 'a') {
             angle += 10;
