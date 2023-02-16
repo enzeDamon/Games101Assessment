@@ -1,0 +1,8 @@
+Detecting CXX [-std=c++14] compiler features failed to compile with the following output:
+Change Dir: /media/sf_Games101Assessment/Assignment7/Assignment7/build/CMakeFiles/CMakeTmp
+
+Run Build Command:"/usr/bin/make" "cmTC_5310e/fast"
+make: *** No rule to make target 'cmTC_5310e/fast'.  Stop.
+
+
+
